@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejador de Corte — COUSE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f5f5f3;color:#1a1a1a;padding:1.5rem;}
+h1{font-size:20px;font-weight:700;margin-bottom:0.2rem;}
+.card{background:#fff;border:1px solid #e0e0da;border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
+.tab{padding:5px 12px;font-size:12px;font-weight:500;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;color:#555;transition:all 0.15s;}
+.tab:hover{background:#f0f0ec;}
+.tab.active{background:#e6f1fb;color:#185FA5;border-color:#185FA5;}
+.tab.t-est{background:#faeeda;color:#854F0B;border-color:#EF9F27;font-weight:600;}
+.tab.t-sum{background:#eaf3de;color:#3B6D11;border-color:#639922;font-weight:600;}
+.panel{display:none;}.panel.active{display:block;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0da;white-space:nowrap;}
+th.r{text-align:right;}
+td{padding:6px 8px;border-bottom:1px solid #f0f0ec;color:#1a1a1a;vertical-align:middle;font-size:13px;}
+td.r{text-align:right;}
+tr:last-child td{border-bottom:none;}
+tfoot td{font-weight:600;background:#f5f5f3;border-top:1px solid #e0e0da;border-bottom:none;}
+input[type=number]{width:80px;text-align:right;padding:4px 6px;font-size:13px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#1a1a1a;}
+input[type=number]:focus{outline:none;border-color:#185FA5;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+.tag{font-size:11px;padding:2px 7px;border-radius:6px;display:inline-block;white-space:nowrap;}
+.ok{background:#eaf3de;color:#3B6D11;}
+.warn{background:#faeeda;color:#854F0B;}
+.err{background:#fcebeb;color:#A32D2D;}
+.na{background:#f0f0ec;color:#888;}
+.metric{background:#f5f5f3;border-radius:8px;padding:0.5rem 0.75rem;}
+.metric label{font-size:11px;color:#888;display:block;margin-bottom:2px;}
+.metric span{font-size:17px;font-weight:600;color:#1a1a1a;}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.bar-wrap{background:#e0e0da;border-radius:3px;height:6px;overflow:hidden;}
+.bar-inner{height:100%;border-radius:3px;transition:width 0.3s;}
+.sp{color:#3B6D11;font-weight:500;}
+.sn{color:#A32D2D;font-weight:500;}
+.info-box{background:#f5f5f3;border-radius:8px;padding:0.5rem 0.75rem;font-size:12px;color:#666;margin-bottom:0.75rem;}
+.info-box span{font-weight:600;color:#1a1a1a;}
+.pool-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;display:inline-block;}
+.badge-main{background:#e6f1fb;color:#185FA5;}
+.badge-ja{background:#faeeda;color:#854F0B;}
+.badge-pl{background:#eaf3de;color:#3B6D11;}
+.pool-header{display:flex;align-items:center;gap:8px;margin:1.25rem 0 0.5rem;}
+.section-title{font-size:11px;font-weight:600;color:#888;margin:1rem 0 0.5rem;text-transform:uppercase;letter-spacing:0.05em;}
+.note{font-size:11px;color:#888;margin-top:0.5rem;}
+.unit-toggle{display:inline-flex;border:1px solid #ccc;border-radius:6px;overflow:hidden;}
+.unit-toggle button{padding:3px 9px;font-size:11px;font-weight:500;border:none;cursor:pointer;background:#fff;color:#555;transition:all 0.15s;}
+.unit-toggle button.active{background:#e6f1fb;color:#185FA5;}
+.unit-toggle button:first-child{border-right:1px solid #ccc;}
+.conv-label{font-size:10px;color:#888;margin-top:2px;text-align:right;display:block;}
+@media(max-width:600px){.grid4{grid-template-columns:repeat(2,1fr);}.grid3{grid-template-columns:repeat(2,1fr);}input[type=number]{width:65px;}}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Planejador de Corte — COUSE</h1>
+  <p style="font-size:12px;color:#666;margin-bottom:0.75rem;">
+    <span class="pool-badge badge-main">Pool Principal</span> Mousepads, Cases, Pasta, Porta Copo, JA cor única &nbsp;
+    <span class="pool-badge badge-ja">Pool Dupla Face JA</span> JA Retangular e Orgânico dupla face &nbsp;
+    <span class="pool-badge badge-pl">Pool Porta Lixo</span> Porta Lixo e Porta Lixo c/ Acessório
+  </p>
+  <div class="tabs">
+    <div class="tab t-est active" onclick="showTab('estoque')">📦 Estoques</div>
+    <div class="tab t-sum" onclick="showTab('resumo')">📊 Resumo</div>
+    <div class="tab" onclick="showTab('mp9040')">MP 90×40</div>
+    <div class="tab" onclick="showTab('mp7030')">MP 70×30</div>
+    <div class="tab" onclick="showTab('mp2020')">MP 20×20</div>
+    <div class="tab" onclick="showTab('mp2220')">MP Org 22×20</div>
+    <div class="tab" onclick="showTab('pc')">Porta Copo</div>
+    <div class="tab" onclick="showTab('pl')">Porta Lixo</div>
+    <div class="tab" onclick="showTab('pla')">P. Lixo + Acess.</div>
+    <div class="tab" onclick="showTab('cipad')">Case iPad</div>
+    <div class="tab" onclick="showTab('cmac')">Case Macbook</div>
+    <div class="tab" onclick="showTab('cnote')">Case Notebook</div>
+    <div class="tab" onclick="showTab('pasta')">Pasta A4</div>
+    <div class="tab" onclick="showTab('jar')">JA Retangular</div>
+    <div class="tab" onclick="showTab('jao')">JA Orgânico</div>
+  </div>
+  <div id="tab-estoque" class="panel active"></div>
+  <div id="tab-resumo" class="panel"></div>
+  <div id="tab-mp9040" class="panel"></div>
+  <div id="tab-mp7030" class="panel"></div>
+  <div id="tab-mp2020" class="panel"></div>
+  <div id="tab-mp2220" class="panel"></div>
+  <div id="tab-pc" class="panel"></div>
+  <div id="tab-pl" class="panel"></div>
+  <div id="tab-pla" class="panel"></div>
+  <div id="tab-cipad" class="panel"></div>
+  <div id="tab-cmac" class="panel"></div>
+  <div id="tab-cnote" class="panel"></div>
+  <div id="tab-pasta" class="panel"></div>
+  <div id="tab-jar" class="panel"></div>
+  <div id="tab-jao" class="panel"></div>
+</div>
+<script>
+const RM=25;
+const CORES_ALL=[
+  {id:'preto',nome:'Preto',cor:'#2C2C2A'},{id:'caramelo',nome:'Caramelo',cor:'#BA7517'},
+  {id:'cafe',nome:'Café',cor:'#633806'},{id:'offwhite',nome:'Off White',cor:'#D3D1C7'},
+  {id:'rose',nome:'Rose',cor:'#D4537E'},{id:'cinza',nome:'Cinza',cor:'#888780'},
+  {id:'azul',nome:'Azul Marinho',cor:'#0C447C'},{id:'verde',nome:'Verde',cor:'#639922'},
+  {id:'verdemusgo',nome:'Verde Musgo',cor:'#27500A'},{id:'bordo',nome:'Bordô',cor:'#791F1F'},
+  {id:'cappuccino',nome:'Cappuccino',cor:'#C9A96E'},
+];
+const CORES_PL=['preto','cafe','caramelo'];
+const CORES_JADF=['preto','caramelo','cafe','cappuccino'];
+const cObj=id=>CORES_ALL.find(c=>c.id===id);
+const stockMain={};const modeMain={};
+const stockPL={};const modePL={};
+const stockJADF={};const modeJADF={};
+CORES_ALL.forEach(c=>{stockMain[c.id]=0;modeMain[c.id]='rolos';});
+CORES_PL.forEach(c=>{stockPL[c]=0;modePL[c]='rolos';});
+CORES_JADF.forEach(c=>{stockJADF[c]=0;modeJADF[c]='rolos';});
+const demanda={};
+const DUPLA=[
+  {id:'df0',nome:'Preto/Caramelo',c1:'preto',c2:'caramelo'},
+  {id:'df1',nome:'Preto/Café',c1:'preto',c2:'cafe'},
+  {id:'df2',nome:'Preto/Cappuccino',c1:'preto',c2:'cappuccino'},
+];
+const PRODS=[
+  {pid:'mp9040',label:'Mousepad 90×40',ppr:81,pool:'main',cores:['preto','caramelo','cafe','offwhite','rose','cinza','azul','verde','verdemusgo','bordo'],dupla:false},
+  {pid:'mp7030',label:'Mousepad 70×30',ppr:140,pool:'main',cores:['preto','caramelo','cafe','offwhite','rose','cinza','azul','verde','verdemusgo','bordo'],dupla:false},
+  {pid:'mp2020',label:'Mousepad 20×20',ppr:648,pool:'main',cores:['preto','caramelo','cafe','offwhite','rose','cinza','azul','verde','verdemusgo','bordo'],dupla:false},
+  {pid:'mp2220',label:'Mousepad Orgânico 22×20',ppr:690,pool:'main',cores:['preto','caramelo','cafe','offwhite','rose','cinza','azul','verde','verdemusgo','bordo'],dupla:false},
+  {pid:'pc',label:'Porta Copo',ppr:4155,pool:'main',cores:['preto','caramelo','cafe','offwhite','rose','cinza','azul','verde','verdemusgo','bordo'],dupla:true,dfpool:'main'},
+  {pid:'pl',label:'Porta Lixo',ppr:242,pool:'pl',cores:['preto','cafe','caramelo'],dupla:false},
+  {pid:'pla',label:'Porta Lixo c/ Acessório',ppr:208,pool:'pl',cores:['preto','cafe','caramelo'],dupla:false},
+  {pid:'cipad',label:'Case iPad 11"',ppr:262,pool:'main',cores:['preto','caramelo','cafe','offwhite'],dupla:false},
+  {pid:'cmac',label:'Case Macbook',ppr:128,pool:'main',cores:['preto','caramelo','cafe'],dupla:false},
+  {pid:'cnote',label:'Case Notebook 15,6"',ppr:104,pool:'main',cores:['preto','cafe','caramelo'],dupla:false},
+  {pid:'pasta',label:'Pasta Office A4',ppr:141,pool:'main',cores:['preto','caramelo','cafe','bordo'],dupla:false},
+  {pid:'jar',label:'JA Retangular',ppr:198,pool:'main',cores:['preto','caramelo','cafe','bordo','verde','cappuccino'],dupla:true,dfpool:'jadf'},
+  {pid:'jao',label:'JA Orgânico',ppr:220,pool:'main',cores:['preto','caramelo','cafe','bordo','verde','cappuccino'],dupla:true,dfpool:'jadf'},
+];
+PRODS.forEach(p=>{demanda[p.pid]={};p.cores.forEach(c=>demanda[p.pid][c]=0);if(p.dupla)DUPLA.forEach(d=>demanda[p.pid][d.id+'_dem']=0);});
+function getStock(pool,cid){if(pool==='pl')return stockPL[cid]||0;if(pool==='jadf')return stockJADF[cid]||0;return stockMain[cid]||0;}
+function calcConsumoPool(pool){const consumo={};CORES_ALL.forEach(c=>consumo[c.id]=0);PRODS.forEach(p=>{const r=p.ppr/RM;if(p.pool===pool){p.cores.forEach(cid=>{const d=demanda[p.pid][cid]||0;if(d>0)consumo[cid]+=d/r;});}if(p.dupla&&p.dfpool===pool){DUPLA.forEach(df=>{const d=demanda[p.pid][df.id+'_dem']||0;if(d>0){consumo[df.c1]+=d/r;consumo[df.c2]+=d/r;}});}});return consumo;}
+function dispProd(pid,cid){const p=PRODS.find(x=>x.pid===pid);const r=p.ppr/RM;const cons=calcConsumoPool(p.pool);const proprio=(demanda[pid][cid]||0)/r;return getStock(p.pool,cid)-(cons[cid]-proprio);}
+function dispDupla(pid,cid){const p=PRODS.find(x=>x.pid===pid);const pool=p.dfpool;const r=p.ppr/RM;const cons=calcConsumoPool(pool);let proprio=0;DUPLA.forEach(df=>{const d=demanda[pid][df.id+'_dem']||0;if(d>0&&(df.c1===cid||df.c2===cid))proprio+=d/r;});return getStock(pool,cid)-(cons[cid]-proprio);}
+function recalcTudo(){PRODS.forEach(p=>p.dupla?recalcDupla(p.pid):recalcSimples(p.pid));recalcEstoqueDisplay();recalcResumo();}
+function stTag(sl,d,prod){if(d===0)return'<span class="tag na">—</span>';if(prod===0)return'<span class="tag err">sem estoque</span>';if(sl>=0)return'<span class="tag ok">ok</span>';if(prod>=d*0.8)return'<span class="tag warn">parcial</span>';return'<span class="tag err">insuficiente</span>';}
+function barH(pct,sl){const c=sl>=0?'#1D9E75':(pct>=80?'#BA7517':'#E24B4A');return`<div class="bar-wrap"><div class="bar-inner" style="width:${Math.min(100,pct).toFixed(0)}%;background:${c};"></div></div><div style="font-size:10px;color:#888;margin-top:1px;">${Math.min(100,pct).toFixed(0)}%</div>`;}
+
+function buildEstoque(){
+  document.getElementById('tab-estoque').innerHTML=`
+  <div class="info-box">Lance os estoques em cada pool. <span>Cada pool é independente — os produtos consomem apenas do seu pool correspondente.</span></div>
+  <div class="pool-header"><span class="pool-badge badge-main" style="font-size:13px;">📦 Pool Principal</span><span style="font-size:12px;color:#666;">Mousepads, Cases, Pasta A4, Porta Copo, JA cor única</span></div>
+  <div class="grid3" style="margin-bottom:0.75rem;"><div class="metric"><label>Estoque total</label><span id="em-tot">0 m</span></div><div class="metric"><label>Consumo previsto</label><span id="em-cons">0 m</span></div><div class="metric"><label>Saldo</label><span id="em-saldo">0 m</span></div></div>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Unidade</th><th class="r">Quantidade</th><th class="r">Metros</th><th class="r">Rolos equiv.</th><th class="r">Consumo</th><th class="r">Saldo</th><th>Status</th></tr></thead><tbody id="est-main-tbody"></tbody></table></div>
+  <div class="pool-header" style="margin-top:1.5rem;"><span class="pool-badge badge-pl" style="font-size:13px;">📦 Pool Porta Lixo</span><span style="font-size:12px;color:#666;">Porta Lixo simples e c/ Acessório</span></div>
+  <div class="grid3" style="margin-bottom:0.75rem;"><div class="metric"><label>Estoque total</label><span id="epl-tot">0 m</span></div><div class="metric"><label>Consumo previsto</label><span id="epl-cons">0 m</span></div><div class="metric"><label>Saldo</label><span id="epl-saldo">0 m</span></div></div>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Unidade</th><th class="r">Quantidade</th><th class="r">Metros</th><th class="r">Rolos equiv.</th><th class="r">Consumo</th><th class="r">Saldo</th><th>Status</th></tr></thead><tbody id="est-pl-tbody"></tbody></table></div>
+  <div class="pool-header" style="margin-top:1.5rem;"><span class="pool-badge badge-ja" style="font-size:13px;">📦 Pool Dupla Face JA</span><span style="font-size:12px;color:#666;">JA Retangular e Orgânico — apenas dupla face</span></div>
+  <div class="grid3" style="margin-bottom:0.75rem;"><div class="metric"><label>Estoque total</label><span id="eja-tot">0 m</span></div><div class="metric"><label>Consumo previsto</label><span id="eja-cons">0 m</span></div><div class="metric"><label>Saldo</label><span id="eja-saldo">0 m</span></div></div>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Unidade</th><th class="r">Quantidade</th><th class="r">Metros</th><th class="r">Rolos equiv.</th><th class="r">Consumo</th><th class="r">Saldo</th><th>Status</th></tr></thead><tbody id="est-ja-tbody"></tbody></table></div>
+  <p class="note" style="margin-top:1rem;">1 rolo = 25m · Saldo = estoque − consumo previsto de todos os produtos do pool</p>`;
+  CORES_ALL.forEach(c=>appendEstRow('est-main-tbody',c,'main',stockMain,modeMain));
+  CORES_PL.forEach(cid=>appendEstRow('est-pl-tbody',cObj(cid),'pl',stockPL,modePL));
+  CORES_JADF.forEach(cid=>appendEstRow('est-ja-tbody',cObj(cid),'jadf',stockJADF,modeJADF));
+}
+function appendEstRow(tbodyId,c,poolId,stockObj,modeObj){
+  const tbody=document.getElementById(tbodyId);
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="dot" style="background:${c.cor}"></span>${c.nome}</td>
+    <td class="r"><div class="unit-toggle"><button id="est-btn-rl-${poolId}-${c.id}" class="active" onclick="setMode('${poolId}','${c.id}','rolos')">Rolos</button><button id="est-btn-m-${poolId}-${c.id}" onclick="setMode('${poolId}','${c.id}','metros')">Metros</button></div></td>
+    <td class="r"><input type="number" id="est-in-${poolId}-${c.id}" min="0" step="0.5" value="0" oninput="onEstChange('${poolId}','${c.id}')"><span class="conv-label" id="est-conv-${poolId}-${c.id}">= 0 m</span></td>
+    <td class="r" id="est-m-${poolId}-${c.id}">0 m</td><td class="r" id="est-rl-${poolId}-${c.id}">0 rl</td>
+    <td class="r" id="est-cons-${poolId}-${c.id}">0 m</td><td class="r" id="est-saldo-${poolId}-${c.id}">0 m</td>
+    <td id="est-sit-${poolId}-${c.id}"><span class="tag na">vazio</span></td>`;
+  tbody.appendChild(tr);
+}
+function setMode(poolId,cid,mode){
+  const mO=poolId==='pl'?modePL:poolId==='jadf'?modeJADF:modeMain;
+  const sO=poolId==='pl'?stockPL:poolId==='jadf'?stockJADF:stockMain;
+  mO[cid]=mode;
+  document.getElementById(`est-btn-rl-${poolId}-${cid}`).classList.toggle('active',mode==='rolos');
+  document.getElementById(`est-btn-m-${poolId}-${cid}`).classList.toggle('active',mode==='metros');
+  const m=sO[cid]||0;const el=document.getElementById(`est-in-${poolId}-${cid}`);
+  el.step=mode==='rolos'?'0.5':'1';el.value=mode==='rolos'?(m/RM).toFixed(2):m.toFixed(1);
+  updateConv(poolId,cid);recalcTudo();
+}
+function onEstChange(poolId,cid){
+  const mO=poolId==='pl'?modePL:poolId==='jadf'?modeJADF:modeMain;
+  const sO=poolId==='pl'?stockPL:poolId==='jadf'?stockJADF:stockMain;
+  const val=parseFloat(document.getElementById(`est-in-${poolId}-${cid}`).value)||0;
+  sO[cid]=mO[cid]==='rolos'?val*RM:val;updateConv(poolId,cid);recalcTudo();
+}
+function updateConv(poolId,cid){
+  const mO=poolId==='pl'?modePL:poolId==='jadf'?modeJADF:modeMain;
+  const sO=poolId==='pl'?stockPL:poolId==='jadf'?stockJADF:stockMain;
+  const m=sO[cid]||0;const el=document.getElementById(`est-conv-${poolId}-${cid}`);
+  if(!el)return;el.textContent=mO[cid]==='rolos'?`= ${m.toFixed(1)} m`:`= ${(m/RM).toFixed(2)} rl`;
+}
+function recalcEstoqueDisplay(){
+  const pools=[{id:'main',stock:stockMain,cores:CORES_ALL.map(c=>c.id),totId:'em'},{id:'pl',stock:stockPL,cores:CORES_PL,totId:'epl'},{id:'jadf',stock:stockJADF,cores:CORES_JADF,totId:'eja'}];
+  pools.forEach(pool=>{
+    const cons=calcConsumoPool(pool.id);let tM=0,tC=0,tS=0;
+    pool.cores.forEach(cid=>{
+      const m=pool.stock[cid]||0,co=cons[cid]||0,s=m-co;tM+=m;tC+=co;tS+=s;
+      const mEl=document.getElementById(`est-m-${pool.id}-${cid}`);if(!mEl)return;
+      mEl.textContent=m.toFixed(1)+' m';
+      document.getElementById(`est-rl-${pool.id}-${cid}`).textContent=(m/RM).toFixed(2)+' rl';
+      document.getElementById(`est-cons-${pool.id}-${cid}`).textContent=co.toFixed(1)+' m';
+      document.getElementById(`est-saldo-${pool.id}-${cid}`).innerHTML=`<span class="${s>=0?'sp':'sn'}">${s>=0?'+':''}${s.toFixed(1)} m</span>`;
+      const sit=document.getElementById(`est-sit-${pool.id}-${cid}`);
+      if(m===0)sit.innerHTML='<span class="tag na">vazio</span>';
+      else if(s<0)sit.innerHTML='<span class="tag err">insuficiente</span>';
+      else if(s<m*0.2)sit.innerHTML='<span class="tag warn">baixo</span>';
+      else sit.innerHTML=`<span class="tag ok">${(m/RM).toFixed(1)} rl disp.</span>`;
+    });
+    document.getElementById(`${pool.totId}-tot`).textContent=tM.toFixed(1)+' m';
+    document.getElementById(`${pool.totId}-cons`).textContent=tC.toFixed(1)+' m';
+    document.getElementById(`${pool.totId}-saldo`).innerHTML=`<span class="${tS>=0?'sp':'sn'}">${tS>=0?'+':''}${tS.toFixed(1)} m</span>`;
+  });
+}
+function buildResumo(){document.getElementById('tab-resumo').innerHTML='<div class="info-box">Visão consolidada dos 3 pools de estoque vs consumo previsto.</div><div id="resumo-content"></div>';}
+function recalcResumo(){
+  const el=document.getElementById('resumo-content');if(!el)return;
+  const pools=[{id:'main',label:'Pool Principal',badge:'badge-main',cores:CORES_ALL.map(c=>c.id),stock:stockMain},{id:'pl',label:'Pool Porta Lixo',badge:'badge-pl',cores:CORES_PL,stock:stockPL},{id:'jadf',label:'Pool Dupla Face JA',badge:'badge-ja',cores:CORES_JADF,stock:stockJADF}];
+  let html='';
+  pools.forEach(pool=>{
+    const cons=calcConsumoPool(pool.id);let rows='';
+    pool.cores.forEach(cid=>{
+      const c=cObj(cid),m=pool.stock[cid]||0,co=cons[cid]||0,s=m-co;
+      if(m===0&&co===0)return;
+      const pct=m>0?Math.min(100,(co/m)*100):(co>0?100:0);
+      const bc=s>=0?'#1D9E75':(pct>=80?'#BA7517':'#E24B4A');
+      rows+=`<tr><td><span class="dot" style="background:${c.cor}"></span>${c.nome}</td><td class="r">${m.toFixed(1)} m</td><td class="r">${(m/RM).toFixed(2)} rl</td><td class="r">${co.toFixed(1)} m</td><td class="r"><span class="${s>=0?'sp':'sn'}">${s>=0?'+':''}${s.toFixed(1)} m</span></td><td style="min-width:90px;"><div class="bar-wrap"><div class="bar-inner" style="width:${pct.toFixed(0)}%;background:${bc};"></div></div><div style="font-size:10px;color:#888;margin-top:1px;">${pct.toFixed(0)}%</div></td><td>${s<0?'<span class="tag err">falta '+Math.abs(s).toFixed(1)+'m</span>':s<m*0.2&&m>0?'<span class="tag warn">baixo</span>':m>0?'<span class="tag ok">ok</span>':'<span class="tag na">—</span>'}</td></tr>`;
+    });
+    if(rows)html+=`<div class="pool-header"><span class="pool-badge ${pool.badge}" style="font-size:13px;">${pool.label}</span></div><div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Estoque (m)</th><th class="r">Estoque (rl)</th><th class="r">Consumo (m)</th><th class="r">Saldo</th><th>Utilização</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  let pRows='';
+  PRODS.forEach(p=>{const r=p.ppr/RM;let tu=0,tm=0;p.cores.forEach(cid=>{const d=demanda[p.pid][cid]||0;tu+=d;if(d>0)tm+=d/r;});if(p.dupla)DUPLA.forEach(df=>{const d=demanda[p.pid][df.id+'_dem']||0;if(d>0){tu+=d;tm+=2*(d/r);}});if(tu===0)return;const pb=p.pool==='pl'?'badge-pl':'badge-main';const dfb=p.dfpool&&p.dfpool==='jadf'?'<span class="pool-badge badge-ja" style="font-size:10px;">DF: Pool JA</span>':'';pRows+=`<tr><td>${p.label} <span class="pool-badge ${pb}" style="font-size:10px;">${p.pool==='pl'?'Pool PL':'Pool Principal'}</span> ${dfb}</td><td class="r">${tu} un</td><td class="r">${tm.toFixed(1)} m</td><td class="r">${(tm/RM).toFixed(2)} rl</td></tr>`;});
+  el.innerHTML=html+(pRows?`<p class="section-title" style="margin-top:1.5rem;">Demanda por produto</p><div style="overflow-x:auto;"><table><thead><tr><th>Produto</th><th class="r">Unidades</th><th class="r">Metros</th><th class="r">Rolos</th></tr></thead><tbody>${pRows}</tbody></table></div>`:'');
+}
+function buildSimples(p){
+  const r=p.ppr/RM;const pb=p.pool==='pl'?'badge-pl':'badge-main';const pl=p.pool==='pl'?'Pool Porta Lixo':'Pool Principal';
+  document.getElementById('tab-'+p.pid).innerHTML=`<div class="info-box"><span>${p.label}</span> · ${p.ppr} pçs/rolo · ${r.toFixed(2)} pçs/m &nbsp;<span class="pool-badge ${pb}">${pl}</span></div>
+  <div class="grid4"><div class="metric"><label>Demanda/mês</label><span id="${p.pid}-tot-d">—</span></div><div class="metric"><label>Produzível</label><span id="${p.pid}-tot-c">—</span></div><div class="metric"><label>Metros necessários</label><span id="${p.pid}-tot-m">—</span></div><div class="metric"><label>Metros consumidos</label><span id="${p.pid}-tot-cons">0 m</span></div></div>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Demanda</th><th class="r">Metros nec.</th><th class="r">Rolos nec.</th><th class="r">Estoque pool (m)</th><th class="r">Disponível</th><th class="r">Produzível</th><th class="r">Saldo</th><th>Status</th><th>Cobertura</th></tr></thead><tbody id="${p.pid}-tbody"></tbody>
+  <tfoot><tr><td>Total</td><td class="r" id="${p.pid}-ft-d">—</td><td class="r" id="${p.pid}-ft-mn">—</td><td class="r" id="${p.pid}-ft-rn">—</td><td class="r" id="${p.pid}-ft-em">—</td><td class="r" id="${p.pid}-ft-disp">—</td><td class="r" id="${p.pid}-ft-prod">—</td><td class="r" id="${p.pid}-ft-sl">—</td><td></td><td></td></tr></tfoot></table></div>
+  <p class="note">Disponível = estoque do ${pl} para esta cor − metros alocados pelos outros produtos do mesmo pool.</p>`;
+  p.cores.forEach((cid,i)=>{const c=cObj(cid);const tr=document.createElement('tr');tr.innerHTML=`<td><span class="dot" style="background:${c.cor}"></span>${c.nome}</td><td class="r"><input type="number" id="${p.pid}-d-${i}" min="0" step="1" value="0" oninput="onDemSimples('${p.pid}','${cid}',${i})"></td><td class="r" id="${p.pid}-mn-${i}">—</td><td class="r" id="${p.pid}-rn-${i}">—</td><td class="r" id="${p.pid}-em-${i}">—</td><td class="r" id="${p.pid}-disp-${i}">—</td><td class="r" id="${p.pid}-prod-${i}">—</td><td class="r" id="${p.pid}-sl-${i}">—</td><td id="${p.pid}-st-${i}"><span class="tag na">—</span></td><td id="${p.pid}-bar-${i}" style="min-width:80px;"></td>`;document.getElementById(p.pid+'-tbody').appendChild(tr);});
+}
+function onDemSimples(pid,cid,i,prefix){const pfx=prefix||'d';demanda[pid][cid]=parseInt(document.getElementById(`${pid}-${pfx}-${i}`).value)||0;recalcTudo();}
+function recalcSimples(pid){
+  const p=PRODS.find(x=>x.pid===pid);if(!p||p.dupla)return;const r=p.ppr/RM;let totD=0,totMn=0,totProd=0,totEm=0,totDisp=0,totSl=0;
+  p.cores.forEach((cid,i)=>{const d=demanda[pid][cid]||0,mn=d>0?d/r:0,em=getStock(p.pool,cid);const disp=dispProd(pid,cid);const prod=Math.floor(Math.max(0,disp)*r),sl=prod-d;const pct=d>0?Math.min(100,(prod/d)*100):(prod>0?100:0);
+    document.getElementById(`${pid}-mn-${i}`).textContent=d>0?mn.toFixed(1)+' m':'—';document.getElementById(`${pid}-rn-${i}`).textContent=d>0?(mn/RM).toFixed(2)+' rl':'—';document.getElementById(`${pid}-em-${i}`).textContent=em.toFixed(1)+' m';document.getElementById(`${pid}-disp-${i}`).innerHTML=`<span class="${disp>=mn?'sp':'sn'}">${disp.toFixed(1)} m</span>`;document.getElementById(`${pid}-prod-${i}`).textContent=prod;document.getElementById(`${pid}-sl-${i}`).innerHTML=d===0?'—':`<span class="${sl>=0?'sp':'sn'}">${sl>=0?'+':''}${sl}</span>`;document.getElementById(`${pid}-st-${i}`).innerHTML=stTag(sl,d,prod);document.getElementById(`${pid}-bar-${i}`).innerHTML=d===0?'':barH(pct,sl);
+    if(d>0){totD+=d;totMn+=mn;totProd+=prod;totDisp+=disp;totSl+=sl;}totEm+=em;});
+  document.getElementById(`${pid}-tot-d`).textContent=totD||'—';document.getElementById(`${pid}-tot-c`).textContent=totProd||'—';document.getElementById(`${pid}-tot-m`).textContent=totMn>0?totMn.toFixed(1)+' m':'—';document.getElementById(`${pid}-tot-cons`).textContent=totMn>0?totMn.toFixed(1)+' m':'0 m';document.getElementById(`${pid}-ft-d`).textContent=totD||'—';document.getElementById(`${pid}-ft-mn`).textContent=totMn>0?totMn.toFixed(1)+' m':'—';document.getElementById(`${pid}-ft-rn`).textContent=totMn>0?(totMn/RM).toFixed(2)+' rl':'—';document.getElementById(`${pid}-ft-em`).textContent=totEm.toFixed(1)+' m';document.getElementById(`${pid}-ft-disp`).innerHTML=`<span class="${totDisp>=totMn?'sp':'sn'}">${totDisp.toFixed(1)} m</span>`;document.getElementById(`${pid}-ft-prod`).textContent=totProd||'—';document.getElementById(`${pid}-ft-sl`).innerHTML=totD>0?`<span class="${totSl>=0?'sp':'sn'}">${totSl>=0?'+':''}${totSl}</span>`:'—';
+}
+function buildDupla(p){
+  const r=p.ppr/RM;const dfLabel=p.dfpool==='jadf'?'Pool Dupla Face JA':'Pool Principal';const dfBadge=p.dfpool==='jadf'?'badge-ja':'badge-main';let sH='',dH='';
+  p.cores.forEach((cid,i)=>{const c=cObj(cid);sH+=`<tr><td><span class="dot" style="background:${c.cor}"></span>${c.nome}</td><td class="r"><input type="number" id="${p.pid}-sd-${i}" min="0" step="1" value="0" oninput="onDemSimples('${p.pid}','${cid}',${i},'sd')"></td><td class="r" id="${p.pid}-smn-${i}">—</td><td class="r" id="${p.pid}-srn-${i}">—</td><td class="r" id="${p.pid}-sem-${i}">—</td><td class="r" id="${p.pid}-sdisp-${i}">—</td><td class="r" id="${p.pid}-sprod-${i}">—</td><td class="r" id="${p.pid}-ssl-${i}">—</td><td id="${p.pid}-sst-${i}"><span class="tag na">—</span></td><td id="${p.pid}-sbar-${i}" style="min-width:80px;"></td></tr>`;});
+  DUPLA.forEach((df,i)=>{const c1=cObj(df.c1),c2=cObj(df.c2);dH+=`<tr><td><span class="dot" style="background:${c1.cor}"></span>${c1.nome} + <span class="dot" style="background:${c2.cor}"></span>${c2.nome}</td><td class="r"><input type="number" id="${p.pid}-dd-${i}" min="0" step="1" value="0" oninput="onDemDupla('${p.pid}',${i})"></td><td class="r" id="${p.pid}-dmn-${i}">—</td><td class="r" id="${p.pid}-dp1-${i}">—</td><td class="r" id="${p.pid}-dp2-${i}">—</td><td class="r" id="${p.pid}-dprod-${i}">—</td><td class="r" id="${p.pid}-dsl-${i}">—</td><td id="${p.pid}-dst-${i}"><span class="tag na">—</span></td></tr>`;});
+  document.getElementById('tab-'+p.pid).innerHTML=`<div class="info-box"><span>${p.label}</span> · ${p.ppr} pçs/rolo · ${r.toFixed(2)} pçs/m</div>
+  <p class="section-title">Simples (cor única) <span class="pool-badge badge-main" style="margin-left:6px;">Pool Principal</span></p>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Cor</th><th class="r">Demanda</th><th class="r">Metros nec.</th><th class="r">Rolos nec.</th><th class="r">Estoque (m)</th><th class="r">Disponível</th><th class="r">Produzível</th><th class="r">Saldo</th><th>Status</th><th>Cobertura</th></tr></thead><tbody>${sH}</tbody></table></div>
+  <p class="section-title" style="margin-top:1.25rem;">Dupla face <span class="pool-badge ${dfBadge}" style="margin-left:6px;">${dfLabel}</span></p>
+  <div style="overflow-x:auto;"><table><thead><tr><th>Combinação</th><th class="r">Demanda</th><th class="r">Metros nec.(cada)</th><th class="r">Produzível cor 1</th><th class="r">Produzível cor 2</th><th class="r">Produzível final</th><th class="r">Saldo</th><th>Status</th></tr></thead><tbody>${dH}</tbody></table></div>
+  <p class="note">Simples: consome do Pool Principal. Dupla face: consome do ${dfLabel}.</p>`;
+}
+function onDemDupla(pid,i){demanda[pid][DUPLA[i].id+'_dem']=parseInt(document.getElementById(`${pid}-dd-${i}`).value)||0;recalcTudo();}
+function recalcDupla(pid){
+  const p=PRODS.find(x=>x.pid===pid);if(!p)return;const r=p.ppr/RM;
+  p.cores.forEach((cid,i)=>{const d=demanda[pid][cid]||0,mn=d>0?d/r:0,em=getStock(p.pool,cid);const disp=dispProd(pid,cid);const prod=Math.floor(Math.max(0,disp)*r),sl=prod-d;const pct=d>0?Math.min(100,(prod/d)*100):(prod>0?100:0);
+    document.getElementById(`${pid}-smn-${i}`).textContent=d>0?mn.toFixed(1)+' m':'—';document.getElementById(`${pid}-srn-${i}`).textContent=d>0?(mn/RM).toFixed(2)+' rl':'—';document.getElementById(`${pid}-sem-${i}`).textContent=em.toFixed(1)+' m';document.getElementById(`${pid}-sdisp-${i}`).innerHTML=`<span class="${disp>=mn?'sp':'sn'}">${disp.toFixed(1)} m</span>`;document.getElementById(`${pid}-sprod-${i}`).textContent=prod;document.getElementById(`${pid}-ssl-${i}`).innerHTML=d===0?'—':`<span class="${sl>=0?'sp':'sn'}">${sl>=0?'+':''}${sl}</span>`;document.getElementById(`${pid}-sst-${i}`).innerHTML=stTag(sl,d,prod);document.getElementById(`${pid}-sbar-${i}`).innerHTML=d===0?'':barH(pct,sl);});
+  DUPLA.forEach((df,i)=>{const d=demanda[pid][df.id+'_dem']||0,mn=d>0?d/r:0;const a1=dispDupla(pid,df.c1),a2=dispDupla(pid,df.c2);const p1=Math.floor(Math.max(0,a1)*r),p2=Math.floor(Math.max(0,a2)*r);const prod=Math.min(p1,p2),sl=prod-d;
+    document.getElementById(`${pid}-dmn-${i}`).textContent=d>0?mn.toFixed(1)+' m cada':'—';document.getElementById(`${pid}-dp1-${i}`).textContent=p1;document.getElementById(`${pid}-dp2-${i}`).textContent=p2;document.getElementById(`${pid}-dprod-${i}`).textContent=prod;document.getElementById(`${pid}-dsl-${i}`).innerHTML=d===0?'—':`<span class="${sl>=0?'sp':'sn'}">${sl>=0?'+':''}${sl}</span>`;document.getElementById(`${pid}-dst-${i}`).innerHTML=stTag(sl,d,prod);});
+}
+function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));const keys=['estoque','resumo','mp9040','mp7030','mp2020','mp2220','pc','pl','pla','cipad','cmac','cnote','pasta','jar','jao'];const idx=keys.indexOf(id);if(idx>=0)document.querySelectorAll('.tab')[idx].classList.add('active');document.getElementById('tab-'+id).classList.add('active');}
+buildEstoque();buildResumo();PRODS.forEach(p=>p.dupla?buildDupla(p):buildSimples(p));recalcTudo();
+</script>
+</body>
+</html>
